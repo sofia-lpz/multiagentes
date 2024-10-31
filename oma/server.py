@@ -1,5 +1,6 @@
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
+from mesa.visualization.UserParam import Slider
 from model import CellularAutomata
 
 def cell_portrayal(agent):
@@ -35,7 +36,8 @@ chart = ChartModule(
 # Configurar y lanzar servidor
 model_params = {
     "width": 50,
-    "height": 50
+    "height": 50,
+    "density": Slider("Initial Density", 0.5, 0.01, 1.0, 0.01)
 }
 
 server = ModularServer(

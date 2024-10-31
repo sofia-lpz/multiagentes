@@ -7,28 +7,20 @@ class CellAgent(mesa.Agent):
         self.next_state = None
         
     def get_top_neighbors(self):
-        """
-        Obtiene los tres vecinos superiores en el orden correcto (izquierda a derecha)
-        """
         x, y = self.pos
         neighbors_states = []
-        
-        # Revisa los tres vecinos superiores en orden: izquierda, centro, derecha
+
         for dx in [-1, 0, 1]:
-            nx = (x + dx) % self.model.grid.width  # Permite wrapping horizontal
-            ny = y + 1
-            
-            if ny < self.model.grid.height:
-                cell = self.model.grid.get_cell_list_contents([(nx, ny)])
-                if cell:
-                    neighbors_states.append(1 if cell[0].state else 0)
-                else:
-                    neighbors_states.append(0)
+            nx = (x + dx) % self.model.grid.width  # Horizontal wrapping
+            ny = (y + 1) % self.model.grid.height  # Vertical wrapping
+
+            cell = self.model.grid.get_cell_list_contents([(nx, ny)])
+            if cell:
+                neighbors_states.append(1 if cell[0].state else 0)
             else:
                 neighbors_states.append(0)
-        print(neighbors_states)
         return neighbors_states
-        
+    
     def step(self):
         """
         Calcula el siguiente estado basado en los vecinos superiores.

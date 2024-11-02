@@ -8,6 +8,7 @@ class CellularAutomata(mesa.Model):
     def __init__(self, width=50, height=50, density=0.5):
         self.grid = SingleGrid(width, height, torus=False)
         self.schedule = SimultaneousActivation(self)
+        self.current_row = height - 1
 
         num_alive_cells = int(width * density)
         first_row_positions = [(x, height-1) for x in range(width)]
@@ -34,5 +35,15 @@ class CellularAutomata(mesa.Model):
         self.running = True
         
     def step(self):
+        # solo se actualiza una fila por step
         self.datacollector.collect(self)
-        self.schedule.step()
+        row_agents = [agent for agent in self.schedule.agents if agent.pos[1] == self.current_row]
+        for agent in row_agents:
+            agent.step()
+        
+        for agent in row_agents:
+            agent.advance()
+        
+        self.current_row -= 1
+        if self.current_row < 0:
+            self.current_row = self.grid.height - 1

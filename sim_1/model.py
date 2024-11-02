@@ -12,8 +12,7 @@ class CellularAutomata(mesa.Model):
         num_alive_cells = int(width * density)
         first_row_positions = [(x, height-1) for x in range(width)]
         alive_positions = self.random.sample(first_row_positions, num_alive_cells)
-        
-        # Crear agentes
+
         for y in range(height-1, -1, -1):  
             for x in range(width):
                 agent = CellAgent((x, y), self)

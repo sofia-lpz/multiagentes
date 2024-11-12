@@ -1,3 +1,4 @@
+# model.py
 import mesa
 from mesa.space import MultiGrid
 from mesa.time import RandomActivation
@@ -49,31 +50,37 @@ class RoombaModel(mesa.Model):
             self.schedule.add(dirt)
         
         # Place Roombas
-
+        self.roombas = []  # Keep track of Roombas
         roomba = Roomba(f"roomba_{0}", self, charging_positions[0])
         self.grid.place_agent(roomba, charging_positions[0])
         self.schedule.add(roomba)
+        self.roombas.append(roomba)
 
+        self.initial_dirt_count = n_dirt
+        
+        # Updated datacollector with correct metrics
         self.datacollector = DataCollector(
             model_reporters={
-                "Step": lambda m: m.current_step,
-                "Clean_Percentage": lambda m: self.get_clean_percentage(),
-                "Total_Moves": lambda m: self.get_total_moves()
-            },
-            agent_reporters={
-                "Battery": lambda a: getattr(a, "battery", None),
-                "Moves": lambda a: getattr(a, "moves_count", None),
-                "State": lambda a: getattr(a, "state", None)
+                "Clean_Percentage": self.get_clean_percentage,
+                "Total_Moves": self.get_total_moves,
+                "Average_Battery": self.get_average_battery
             }
         )
+        
+        # Collect initial state
+        self.datacollector.collect(self)
     
     def get_clean_percentage(self):
         dirt_count = sum(1 for agent in self.schedule.agents if isinstance(agent, Trash))
-        total_cells = self.width * self.height
-        return ((total_cells - dirt_count) / total_cells) * 100
+        return ((self.initial_dirt_count - dirt_count) / self.initial_dirt_count) * 100 if self.initial_dirt_count > 0 else 100
     
     def get_total_moves(self):
-        return sum(agent.moves_count for agent in self.schedule.agents if isinstance(agent, Roomba))
+        return sum(agent.moves_count for agent in self.roombas)
+    
+    def get_average_battery(self):
+        if not self.roombas:
+            return 0
+        return sum(agent.battery for agent in self.roombas) / len(self.roombas)
     
     def step(self):
         self.current_step += 1

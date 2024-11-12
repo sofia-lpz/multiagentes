@@ -2,8 +2,8 @@
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import Slider, NumberInput
-from agent import ChargingStation, Obstacle, Trash, Roomba
 from model import RoombaModel
+from agent import Roomba, Trash, Obstacle, ChargingStation
 
 def agent_portrayal(agent):
     if agent is None:
@@ -21,7 +21,7 @@ def agent_portrayal(agent):
         portrayal["Color"] = "#000000"  # Black
         portrayal["Layer"] = 2
     elif isinstance(agent, Trash):
-        portrayal["Color"] = "#00FF00" # Green
+        portrayal["Color"] = "#00FF00"  # Green
         portrayal["Layer"] = 1
     elif isinstance(agent, Obstacle):
         portrayal["Color"] = "#FF0000"  # Red
@@ -35,14 +35,27 @@ def agent_portrayal(agent):
 # Create visualization elements
 canvas_element = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
 
-charts = [
-    ChartModule([
-        {"Label": "Clean_Percentage", "Color": "#00FF00"}
-    ]),
-    ChartModule([
-        {"Label": "Total_Moves", "Color": "#0000FF"}
-    ])
-]
+# Updated chart configuration
+clean_chart = ChartModule(
+    [{"Label": "Clean_Percentage", "Color": "#00FF00"}],  # Changed from Clean Percentage
+    data_collector_name="datacollector",
+    canvas_height=200,
+    canvas_width=500
+)
+
+moves_chart = ChartModule(
+    [{"Label": "Total_Moves", "Color": "#0000FF"}],  # Changed from Total Moves
+    data_collector_name="datacollector",
+    canvas_height=200,
+    canvas_width=500
+)
+
+battery_chart = ChartModule(
+    [{"Label": "Average_Battery", "Color": "#FF0000"}],  # Changed from Average Battery
+    data_collector_name="datacollector",
+    canvas_height=200,
+    canvas_width=500
+)
 
 # Model parameters
 model_params = {
@@ -57,7 +70,7 @@ model_params = {
 # Create and launch server
 server = ModularServer(
     RoombaModel,
-    [canvas_element] + charts,
+    [canvas_element, clean_chart, moves_chart, battery_chart],
     "Roomba Simulation",
     model_params
 )

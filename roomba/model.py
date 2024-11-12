@@ -15,6 +15,10 @@ class RoombaModel(mesa.Model):
         self.current_step = 0
         self.running = True
         
+        # Add new attributes for tracking cleaning completion
+        self.cleaning_complete_step = None
+        self.final_clean_percentage = None
+        
         self.grid = MultiGrid(width, height, torus=False)
         self.schedule = RandomActivation(self)
         
@@ -50,7 +54,7 @@ class RoombaModel(mesa.Model):
                 self.schedule.add(charging_station)
                 
                 # Create Roomba with its own charging station position
-                roomba = Roomba(f"roomba_{i+1}", self, pos)  # Pass this station's position
+                roomba = Roomba(f"roomba_{i+1}", self, pos)
                 self.grid.place_agent(roomba, pos)
                 self.schedule.add(roomba)
                 self.roombas.append(roomba)
@@ -76,12 +80,13 @@ class RoombaModel(mesa.Model):
         
         self.initial_dirt_count = n_dirt
         
-        # Updated datacollector with correct metrics
+        # Updated datacollector with new metrics
         self.datacollector = DataCollector(
             model_reporters={
                 "Clean_Percentage": self.get_clean_percentage,
                 "Total_Moves": self.get_total_moves,
-                "Average_Battery": self.get_average_battery
+                "Time_To_Clean": self.get_time_to_clean,
+                "Cleaning_Complete": self.is_cleaning_complete
             }
         )
         
@@ -95,15 +100,25 @@ class RoombaModel(mesa.Model):
     def get_total_moves(self):
         return sum(agent.moves_count for agent in self.roombas)
     
-    def get_average_battery(self):
-        if not self.roombas:
-            return 0
-        return sum(agent.battery for agent in self.roombas) / len(self.roombas)
+    def get_time_to_clean(self):
+        if self.cleaning_complete_step is not None:
+            return self.cleaning_complete_step
+        return self.current_step if self.is_cleaning_complete() else self.max_time
+    
+    def is_cleaning_complete(self):
+        return self.get_clean_percentage() == 100
     
     def step(self):
         self.current_step += 1
         self.schedule.step()
-        self.datacollector.collect(self)
         
+        # Check if cleaning is complete for the first time
+        if self.cleaning_complete_step is None and self.is_cleaning_complete():
+            self.cleaning_complete_step = self.current_step
+            
+        # Store final clean percentage when simulation ends
         if self.current_step >= self.max_time:
+            self.final_clean_percentage = self.get_clean_percentage()
             self.running = False
+            
+        self.datacollector.collect(self)

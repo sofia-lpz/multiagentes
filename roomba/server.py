@@ -1,13 +1,11 @@
+# server.py
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
-from mesa.visualization.UserParam import Slider
-from model import roomba
-from agent import Roomba, Trash, Obstacle
+from mesa.visualization.UserParam import Slider, NumberInput
+from agent import ChargingStation, Obstacle, Trash, Roomba
+from model import RoombaModel
 
 def agent_portrayal(agent):
-    """
-    Define la representación visual de cada celda.
-    """
     if agent is None:
         return
         
@@ -16,43 +14,51 @@ def agent_portrayal(agent):
         "w": 1,
         "h": 1,
         "Filled": "true",
-        "Layer": 0,
-        "x": agent.pos[0],
-        "y": agent.pos[1]
+        "Layer": 0
     }
     
     if isinstance(agent, Roomba):
         portrayal["Color"] = "#000000"  # Black
+        portrayal["Layer"] = 2
     elif isinstance(agent, Trash):
-        portrayal["Color"] = "#00FF00"  # Green
+        portrayal["Color"] = "#00FF00" # Green
+        portrayal["Layer"] = 1
     elif isinstance(agent, Obstacle):
         portrayal["Color"] = "#FF0000"  # Red
-    else:
-        portrayal["Color"] = "#FFFFFF"  # Default to white if agent type is unknown
+        portrayal["Layer"] = 1
+    elif isinstance(agent, ChargingStation):
+        portrayal["Color"] = "#FFFF00"  # Yellow
+        portrayal["Layer"] = 1
     
     return portrayal
 
-# Crear elementos de visualización
+# Create visualization elements
 canvas_element = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
 
-chart = ChartModule(
-    [
-        {"Label": "Alive", "Color": "#D3D3D3"},
-        {"Label": "Dead", "Color": "#000000"}
-    ]
-)
+charts = [
+    ChartModule([
+        {"Label": "Clean_Percentage", "Color": "#00FF00"}
+    ]),
+    ChartModule([
+        {"Label": "Total_Moves", "Color": "#0000FF"}
+    ])
+]
 
-# Configurar y lanzar servidor
+# Model parameters
 model_params = {
     "width": 50,
     "height": 50,
-    "density": Slider("Initial Density", 0.5, 0.01, 1.0, 0.01)
+    "n_agents": 1,
+    "dirt_density": Slider("Dirt Density", 0.3, 0.0, 1.0, 0.1),
+    "obstacle_density": Slider("Obstacle Density", 0.1, 0.0, 1.0, 0.1),
+    "max_time": NumberInput("Maximum Steps", 1000)
 }
 
+# Create and launch server
 server = ModularServer(
-    roomba,
-    [canvas_element, chart],
-    "Cellular Automata",
+    RoombaModel,
+    [canvas_element] + charts,
+    "Roomba Simulation",
     model_params
 )
 

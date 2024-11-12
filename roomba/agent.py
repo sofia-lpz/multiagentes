@@ -48,7 +48,6 @@ class Roomba(mesa.Agent):
         return False
     
     def find_path_to(self, target_pos):
-        # Simple path finding - move towards target
         current_x, current_y = self.pos
         target_x, target_y = target_pos
         possible_steps = self.model.grid.get_neighborhood(
@@ -61,7 +60,6 @@ class Roomba(mesa.Agent):
         min_distance = float('inf')
         
         for step in possible_steps:
-            # Check if cell is empty or has only trash
             cell_contents = self.model.grid.get_cell_list_contents(step)
             if any(isinstance(agent, Obstacle) for agent in cell_contents):
                 continue
@@ -93,7 +91,7 @@ class Roomba(mesa.Agent):
                     self.state = "charging"
             return
             
-        # Clean current cell
+        #limpiar
         cell_contents = self.model.grid.get_cell_list_contents([self.pos])
         trash = [obj for obj in cell_contents if isinstance(obj, Trash)]
         if trash:
@@ -102,7 +100,7 @@ class Roomba(mesa.Agent):
             self.battery -= 1
             return
             
-        # Move to a random neighboring cell
+        # moverse toma energia?
         possible_moves = self.get_neighbors()
         valid_moves = []
         for move in possible_moves:
@@ -113,3 +111,4 @@ class Roomba(mesa.Agent):
         if valid_moves:
             new_pos = self.random.choice(valid_moves)
             self.move_to(new_pos)
+            self.battery -= 1

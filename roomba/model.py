@@ -28,12 +28,6 @@ class RoombaModel(mesa.Model):
         charging_positions = [(1, 1)]
         all_positions.remove((1, 1))
 
-        # Place charging stations
-        for i, pos in enumerate(charging_positions):
-            station = ChargingStation(f"station_{i}", self)
-            self.grid.place_agent(station, pos)
-            self.schedule.add(station)
-        
         # Place obstacles
         obstacle_positions = self.random.sample(all_positions, n_obstacles)
         for pos in obstacle_positions:
@@ -51,10 +45,36 @@ class RoombaModel(mesa.Model):
         
         # Place Roombas
         self.roombas = []  # Keep track of Roombas
-        roomba = Roomba(f"roomba_{0}", self, charging_positions[0])
+
+
+        # add first charging station
+        station = ChargingStation(f"station_0", self)
+        self.grid.place_agent(station, charging_positions[0])
+        self.schedule.add(station)
+
+        # Create first Roomba
+        roomba = Roomba(f"roomba_0", self, charging_positions[0])
         self.grid.place_agent(roomba, charging_positions[0])
         self.schedule.add(roomba)
-        self.roombas.append(roomba)
+
+        
+
+        for i in range(n_agents - 1):  # Create n_agents number of Roombas
+            # First place charging station
+            station = ChargingStation(f"station_{i+1}", self)
+            self.grid.place_agent(station, charging_positions[0])
+            self.schedule.add(station)
+            
+            # Then place Roomba on top
+            roomba = Roomba(f"roomba_{i+1}", self, charging_positions[0])
+            self.grid.place_agent(roomba, charging_positions[0])
+            self.schedule.add(roomba)
+            self.roombas.append(roomba)
+
+            
+            
+        self.initial_dirt_count = n_dirt
+        
 
         self.initial_dirt_count = n_dirt
         

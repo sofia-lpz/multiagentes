@@ -61,7 +61,7 @@ battery_chart = ChartModule(
 model_params = {
     "width": 50,
     "height": 50,
-    "n_agents": 1,
+    "n_agents": Slider("Number of Roombas", 1, 1, 5, 1),  # min=1, max=5, step=1
     "dirt_density": Slider("Dirt Density", 0.3, 0.0, 1.0, 0.1),
     "obstacle_density": Slider("Obstacle Density", 0.1, 0.0, 1.0, 0.1),
     "max_time": NumberInput("Maximum Steps", 1000)

@@ -85,10 +85,10 @@ class RoombaModel(mesa.Model):
             model_reporters={
                 "Clean_Percentage": self.get_clean_percentage,
                 "Total_Moves": self.get_total_moves,
-                "Time_To_Clean": self.get_time_to_clean,
-                "Cleaning_Complete": self.is_cleaning_complete
+                "Time_To_Clean": self.get_time_to_clean
             }
         )
+
         
         # Collect initial state
         self.datacollector.collect(self)
@@ -111,6 +111,11 @@ class RoombaModel(mesa.Model):
     def step(self):
         self.current_step += 1
         self.schedule.step()
+
+        print("Current data:")
+        print(f"Clean %: {self.get_clean_percentage()}")
+        print(f"Moves: {self.get_total_moves()}")
+        print(f"Time: {self.get_time_to_clean()}")
         
         # Check if cleaning is complete for the first time
         if self.cleaning_complete_step is None and self.is_cleaning_complete():

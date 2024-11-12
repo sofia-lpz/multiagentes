@@ -35,7 +35,7 @@ def agent_portrayal(agent):
 # Create visualization elements
 canvas_element = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
 
-# Updated chart configurations
+# Fixed chart configurations with all required parameters
 clean_chart = ChartModule(
     [{"Label": "Clean_Percentage", "Color": "#00FF00"}],
     data_collector_name="datacollector",
@@ -43,15 +43,15 @@ clean_chart = ChartModule(
     canvas_width=500
 )
 
-time_chart = ChartModule(
-    [{"Label": "Time_To_Clean", "Color": "#FF0000"}],
+moves_chart = ChartModule(
+    [{"Label": "Total_Moves", "Color": "#0000FF"}],
     data_collector_name="datacollector",
     canvas_height=200,
     canvas_width=500
 )
 
-moves_chart = ChartModule(
-    [{"Label": "Total_Moves", "Color": "#0000FF"}],
+time_chart = ChartModule(
+    [{"Label": "Time_To_Clean", "Color": "#FF0000"}],
     data_collector_name="datacollector",
     canvas_height=200,
     canvas_width=500
@@ -66,10 +66,9 @@ model_params = {
     "max_time": NumberInput("Maximum Steps", 1000)
 }
 
-# Updated server configuration with new charts
 server = ModularServer(
     RoombaModel,
-    [canvas_element, clean_chart, time_chart, moves_chart],
+    [canvas_element, clean_chart, moves_chart, time_chart],
     "Roomba Simulation",
     model_params
 )

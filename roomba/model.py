@@ -8,16 +8,23 @@ class roomba(mesa.Model):
     def __init__(self, width=50, height=50, density=0.5):
         self.grid = SingleGrid(width, height, torus=False)
         self.schedule = SimultaneousActivation(self)
-        self.current_row = height - 1
 
-        num_obstacles = int(width * height * 0.1)
-        obstacle_positions = self.random.sample(list(self.grid.coord_iter()), num_obstacles)
+        num_obstacles = int(width * density)
+        obstacle_positions = self.random.sample([(x, y) for x in range(width) for y in range(height)], num_obstacles)
+
+        num_dirt = int(width * density)
+        dirt_positions = self.random.sample([(x, y) for x in range(width) for y in range(height)], num_dirt)
 
         for y in range(height-1, -1, -1):  
             for x in range(width):
 
                 if (x, y) in obstacle_positions:
                     agent = Obstacle((x, y), self)
+                    self.grid.place_agent(agent, (x, y))
+                    self.schedule.add(agent)
+
+                if (x, y) in dirt_positions and (x, y) not in obstacle_positions:
+                    agent = Trash((x, y), self)
                     self.grid.place_agent(agent, (x, y))
                     self.schedule.add(agent)
 
@@ -30,16 +37,6 @@ class roomba(mesa.Model):
         )
         
         self.running = True
+
     def step(self):
-        # solo se actualiza una fila por step
         self.datacollector.collect(self)
-        row_agents = [agent for agent in self.schedule.agents if agent.pos[1] == self.current_row]
-        for agent in row_agents:
-            agent.step()
-        
-        for agent in row_agents:
-            agent.advance()
-        
-        self.current_row -= 1
-        if self.current_row < 0:
-            self.current_row = self.grid.height - 1

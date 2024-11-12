@@ -61,7 +61,7 @@ class Roomba(mesa.Agent):
         
         for step in possible_steps:
             cell_contents = self.model.grid.get_cell_list_contents(step)
-            if any(isinstance(agent, Obstacle) for agent in cell_contents):
+            if any(isinstance(agent, (Obstacle, Roomba)) for agent in cell_contents):
                 continue
                 
             distance = abs(step[0] - target_x) + abs(step[1] - target_y)

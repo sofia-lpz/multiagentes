@@ -18,16 +18,47 @@ class RoombaModel(mesa.Model):
         self.grid = MultiGrid(width, height, torus=False)
         self.schedule = RandomActivation(self)
         
-        # Calculate number of cells for each type
+        # Create empty positions list
+        all_positions = [(x, y) for x in range(width) for y in range(height)]
+        charging_positions = [(1, 1)]
+        all_positions.remove((1, 1))
+        
+        # Place Roombas and their charging stations first
+        self.roombas = []
+        
+        # Place first Roomba and its charging station
+        station = ChargingStation(f"station_0", self)
+        self.grid.place_agent(station, charging_positions[0])
+        self.schedule.add(station)
+        
+        roomba = Roomba(f"roomba_0", self, charging_positions[0])
+        self.grid.place_agent(roomba, charging_positions[0])
+        self.schedule.add(roomba)
+        self.roombas.append(roomba)
+        
+        # Place additional Roombas in random positions
+        available_positions = [pos for pos in all_positions]
+        for i in range(n_agents - 1):
+            if available_positions:
+                pos = self.random.choice(available_positions)
+                available_positions.remove(pos)
+                all_positions.remove(pos)
+                
+                # Place charging station first at the Roomba's position
+                charging_station = ChargingStation(f"station_{i+1}", self)
+                self.grid.place_agent(charging_station, pos)
+                self.schedule.add(charging_station)
+                
+                # Create Roomba with its own charging station position
+                roomba = Roomba(f"roomba_{i+1}", self, pos)  # Pass this station's position
+                self.grid.place_agent(roomba, pos)
+                self.schedule.add(roomba)
+                self.roombas.append(roomba)
+        
+        # Calculate number of cells for dirt and obstacles
         n_dirt = int(width * height * dirt_density)
         n_obstacles = int(width * height * obstacle_density)
         
-        # Create empty positions list
-        all_positions = [(x, y) for x in range(width) for y in range(height)]
-
-        charging_positions = [(1, 1)]
-        all_positions.remove((1, 1))
-
         # Place obstacles
         obstacle_positions = self.random.sample(all_positions, n_obstacles)
         for pos in obstacle_positions:
@@ -43,39 +74,6 @@ class RoombaModel(mesa.Model):
             self.grid.place_agent(dirt, pos)
             self.schedule.add(dirt)
         
-        # Place Roombas
-        self.roombas = []  # Keep track of Roombas
-
-
-        # add first charging station
-        station = ChargingStation(f"station_0", self)
-        self.grid.place_agent(station, charging_positions[0])
-        self.schedule.add(station)
-
-        # Create first Roomba
-        roomba = Roomba(f"roomba_0", self, charging_positions[0])
-        self.grid.place_agent(roomba, charging_positions[0])
-        self.schedule.add(roomba)
-
-        
-
-        for i in range(n_agents - 1):  # Create n_agents number of Roombas
-            # First place charging station
-            station = ChargingStation(f"station_{i+1}", self)
-            self.grid.place_agent(station, charging_positions[0])
-            self.schedule.add(station)
-            
-            # Then place Roomba on top
-            roomba = Roomba(f"roomba_{i+1}", self, charging_positions[0])
-            self.grid.place_agent(roomba, charging_positions[0])
-            self.schedule.add(roomba)
-            self.roombas.append(roomba)
-
-            
-            
-        self.initial_dirt_count = n_dirt
-        
-
         self.initial_dirt_count = n_dirt
         
         # Updated datacollector with correct metrics

@@ -27,6 +27,10 @@ class roomba(mesa.Model):
                     agent = Trash((x, y), self)
                     self.grid.place_agent(agent, (x, y))
                     self.schedule.add(agent)
+        
+        roomba_agent = Roomba((1, 1), self)
+        self.grid.place_agent(roomba_agent, (1, 1))
+        self.schedule.add(roomba_agent)
 
         
         self.datacollector = DataCollector(

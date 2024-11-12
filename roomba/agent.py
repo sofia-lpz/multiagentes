@@ -15,28 +15,22 @@ class Trash(mesa.Agent):
         pass
 
 class Roomba(mesa.Agent):
-
-    battery = 100
-
-    def __init__(self, unique_id, model, initial_state=False):
+    def __init__(self, unique_id, model, battery=100):
         super().__init__(unique_id, model)
-        self.state = initial_state  # True = Alive, False = Dead
+        self.battery = battery
         self.next_state = None
         
-    def get_top_neighbors(self):
-        x, y = self.pos
-        neighbors_states = []
-
-        for dx in [-1, 0, 1]:
-            nx = (x + dx) % self.model.grid.width  # Horizontal wrapping
-            ny = (y + 1) % self.model.grid.height  # Vertical wrapping
-
-            cell = self.model.grid.get_cell_list_contents([(nx, ny)])
-            if cell:
-                neighbors_states.append(1 if cell[0].state else 0)
-            else:
-                neighbors_states.append(0)
-        return neighbors_states
+    def get_neighbors(self):
+        """
+        Obtiene las celdas vecinas.
+        """
+        neighbors = self.model.grid.get_neighborhood(
+            self.pos,
+            moore=True,
+            include_center=False
+        )
+        
+        return neighbors
     
     def step(self):
         """
